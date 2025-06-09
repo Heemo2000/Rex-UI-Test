@@ -12,6 +12,8 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
     private fontFamily: string = 'Arial';
     private tempText: Phaser.GameObjects.Text;
     private cursorPosition: number = 0; // Track cursor position within text
+    private hiddenInput: HTMLInputElement; // Hidden input element for mobile keyboards
+    private isProcessingInput: boolean = false; // Flag to prevent double input
     
     constructor(
         scene: Phaser.Scene, 
@@ -30,16 +32,17 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
         this.height = height;
         this.fontFamily = fontFamily;
         this.cursorPosition = 0;
+        
+        // Create hidden input element for mobile keyboard
+        this.hiddenInput = this.createHiddenInput(placeholderText);
+        
         // Background with rounded corners
         this.background = scene.add.rectangle(x, y, width, height, 0xf0f0f0)
             .setStrokeStyle(2, 0x4e342e)
             .setInteractive();
-            
-        
         
         // Add subtle shadow effect
         const shadow = scene.add.rectangle(x + 2, y + 2, width, height, 0x000000, 0.2);
-        
         
         // Placeholder text
         this.placeholder = scene.add.text(x -width / 2 + 10, y -height / 2 + 10, placeholderText, {
@@ -93,9 +96,15 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
             }
         });
 
-        // Keyboard input
+        // Keyboard input - only handle on desktop, let hidden input handle mobile
         scene.input.keyboard?.on('keydown', (event: KeyboardEvent) => {
-            if (!this.isFocused) return;
+            // Skip if not focused or if input is coming from a mobile device
+            if (!this.isFocused || this.isProcessingInput) return;
+            
+            // Check if this is likely from the virtual keyboard
+            if (event.key === 'Unidentified' || event.key === 'Process') {
+                return; // Let the hidden input handle this
+            }
 
             if (event.key === 'Backspace') {
                 if (this.cursorPosition > 0) {
@@ -129,10 +138,67 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
             this.textObject.setText(this.value);
             this.updateCursorPosition();
             this.updatePlaceholderVisibility();
+            
+            // Keep hidden input in sync without triggering its input event
+            this.isProcessingInput = true;
+            this.hiddenInput.value = this.value;
+            this.isProcessingInput = false;
         });
 
         this.updateCursorPosition();
         this.updatePlaceholderVisibility();
+    }
+    
+    private createHiddenInput(placeholderText: string): HTMLInputElement {
+        // Create a hidden input element for mobile keyboard support
+        let hiddenInput: HTMLInputElement = document.createElement('input') as HTMLInputElement;
+        hiddenInput.type = 'text';
+        hiddenInput.maxLength = this.maxLength;
+        hiddenInput.placeholder = placeholderText;
+        hiddenInput.style.position = 'absolute';
+        hiddenInput.style.opacity = '0.001'; // Nearly invisible but still functional
+        hiddenInput.style.pointerEvents = 'none'; // Don't interfere with game input
+        hiddenInput.style.zIndex = '10';
+        hiddenInput.style.transform = 'translateX(-50%)';
+        hiddenInput.style.width = `${this.width}px`;
+        hiddenInput.style.height = `${this.height}px`;
+        hiddenInput.style.left = '50%';
+        hiddenInput.style.bottom = '20%';
+        hiddenInput.style.fontSize = '16px'; // Prevent zoom on iOS
+        
+        document.body.appendChild(hiddenInput);
+        
+        // Add event listeners for the hidden input
+        hiddenInput.addEventListener('input', (e: Event) => {
+            if(!this.isMobileDevice())
+            {
+                return;
+            }
+            const target = e.target as HTMLInputElement;
+            this.setValue(target.value);
+            
+        });
+        
+        hiddenInput.addEventListener('focus', () => {
+            // Prevent scrolling to the input on mobile
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+        });
+        
+        hiddenInput.addEventListener('blur', () => {
+            this.setFocus(false);
+        });
+
+        return hiddenInput;
+    }
+
+    private isMobileDevice(): boolean {
+        return this.scene.sys.game.device.os.android ||
+               this.scene.sys.game.device.os.iOS ||
+               this.scene.sys.game.device.os.iPad ||
+               this.scene.sys.game.device.os.iPhone ||
+               this.scene.sys.game.device.os.kindle ||
+               this.scene.sys.game.device.os.windowsPhone;
     }
 
     private updateCursorPosition() {
@@ -150,7 +216,6 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
             this.tempText.text = textBeforeCursor;
             
             const textWidth = this.tempText.width;
-            //tempText.destroy(); // Clean up the temporary object
             
             // Position cursor at the calculated position
             this.cursor.setPosition(baseX + textWidth + 1, baseY);
@@ -188,6 +253,11 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
         this.textObject.setText(this.value);
         this.updateCursorPosition();
         this.updatePlaceholderVisibility();
+        
+        // Keep hidden input in sync
+        if (this.hiddenInput.value !== this.value) {
+            this.hiddenInput.value = this.value;
+        }
     }
 
     // Method to handle focus state changes
@@ -206,6 +276,9 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
             // Set cursor to end of text when gaining focus
             this.cursorPosition = this.value.length;
             this.updateCursorPosition();
+            
+            // Focus the hidden input to show mobile keyboard
+            this.hiddenInput.focus();
         } else {
             this.cursor.setVisible(false);
             this.stopCursorBlink();
@@ -214,6 +287,23 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
             // Reset visual style on blur
             this.background.setFillStyle(0xf0f0f0);
             this.background.setStrokeStyle(2, 0x4e342e);
+            
+            // Blur the hidden input to hide mobile keyboard
+            this.hiddenInput.blur();
         }
+    }
+    
+    // Clean up resources when destroying this object
+    public destroy(fromScene?: boolean): void {
+        // Remove the hidden input element
+        if (this.hiddenInput && this.hiddenInput.parentNode) {
+            this.hiddenInput.parentNode.removeChild(this.hiddenInput);
+        }
+        
+        // Stop any timers
+        this.stopCursorBlink();
+        
+        // Call the parent class destroy method
+        super.destroy(fromScene);
     }
 }
