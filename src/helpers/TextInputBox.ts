@@ -159,11 +159,11 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
         hiddenInput.style.opacity = '0.001'; // Nearly invisible but still functional
         hiddenInput.style.pointerEvents = 'none'; // Don't interfere with game input
         hiddenInput.style.zIndex = '10';
-        hiddenInput.style.transform = 'translateX(-50%)';
+        //hiddenInput.style.transform = 'translateX(-50%)';
         hiddenInput.style.width = `${this.width}px`;
         hiddenInput.style.height = `${this.height}px`;
-        hiddenInput.style.left = '50%';
-        hiddenInput.style.bottom = '20%';
+        hiddenInput.style.top = '-9999px'; // Move input out of view
+        hiddenInput.style.left = '-9999px';
         hiddenInput.style.fontSize = '16px'; // Prevent zoom on iOS
         hiddenInput.style.border = 'none'; // Remove border
         hiddenInput.style.outline = 'none'; // Remove outline
