@@ -155,7 +155,7 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
         hiddenInput.type = 'text';
         hiddenInput.maxLength = this.maxLength;
         hiddenInput.placeholder = placeholderText;
-        hiddenInput.style.position = 'absolute';
+        hiddenInput.style.position = 'fixed'; // Use fixed instead of absolute
         hiddenInput.style.opacity = '0.001'; // Nearly invisible but still functional
         hiddenInput.style.pointerEvents = 'none'; // Don't interfere with game input
         hiddenInput.style.zIndex = '10';
@@ -165,6 +165,9 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
         hiddenInput.style.left = '50%';
         hiddenInput.style.bottom = '20%';
         hiddenInput.style.fontSize = '16px'; // Prevent zoom on iOS
+        hiddenInput.style.border = 'none'; // Remove border
+        hiddenInput.style.outline = 'none'; // Remove outline
+        hiddenInput.style.background = 'transparent'; // Transparent background
         
         document.body.appendChild(hiddenInput);
         
@@ -179,11 +182,33 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
             
         });
         
-        // hiddenInput.addEventListener('focus', () => {
-        //     // Prevent scrolling to the input on mobile
-        //     window.scrollTo(0, 0);
-        //     document.body.scrollTop = 0;
-        // });
+        // Prevent scrolling on focus
+        hiddenInput.addEventListener('focus', (e) => {
+            e.preventDefault();
+            // Prevent scrolling to the input on mobile
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+            
+            // Add a timeout to ensure scroll position is maintained
+            setTimeout(() => {
+                window.scrollTo(0, 0);
+                document.body.scrollTop = 0;
+            }, 100);
+        });
+        
+        // Prevent scrolling on click
+        hiddenInput.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Prevent default behavior that might cause scrolling
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+        });
+        
+        // Prevent scrolling on touch
+        hiddenInput.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            // Prevent default touch behavior that might cause scrolling
+        });
         
         hiddenInput.addEventListener('blur', () => {
             this.setFocus(false);
@@ -278,7 +303,13 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
             this.updateCursorPosition();
             
             // Focus the hidden input to show mobile keyboard
-            this.hiddenInput.focus();
+            // Prevent scrolling when focusing
+            setTimeout(() => {
+                this.hiddenInput.focus();
+                // Ensure we stay scrolled to the top
+                window.scrollTo(0, 0);
+                document.body.scrollTop = 0;
+            }, 50);
         } else {
             this.cursor.setVisible(false);
             this.stopCursorBlink();
