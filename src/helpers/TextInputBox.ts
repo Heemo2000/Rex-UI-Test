@@ -179,11 +179,11 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
             
         });
         
-        hiddenInput.addEventListener('focus', () => {
-            // Prevent scrolling to the input on mobile
-            window.scrollTo(0, 0);
-            document.body.scrollTop = 0;
-        });
+        // hiddenInput.addEventListener('focus', () => {
+        //     // Prevent scrolling to the input on mobile
+        //     window.scrollTo(0, 0);
+        //     document.body.scrollTop = 0;
+        // });
         
         hiddenInput.addEventListener('blur', () => {
             this.setFocus(false);
