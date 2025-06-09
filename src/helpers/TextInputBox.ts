@@ -53,7 +53,7 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
         this.textObject = scene.add.text(x -width / 2 + 10, y-height / 2 + 10, '', {
             fontSize: fontSize,
             color: '#333333',
-            fontFamily: 'style-font',
+            fontFamily: this.fontFamily,
             wordWrap: { width: width - 20 }
         });
 
@@ -61,7 +61,7 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
         this.cursor = scene.add.text(x -width / 2 + 10, y-height / 2 + 10, '|', {
             fontSize: fontSize,
             color: '#333333',
-            fontFamily: 'style-font'
+            fontFamily: this.fontFamily
         });
 
         //Temp text
@@ -71,7 +71,7 @@ export default class TextInputBox extends Phaser.GameObjects.Container {
             });
 
         this.tempText.setVisible(false);
-        
+
         this.cursor.setVisible(false); // Initially hidden
 
         this.add([shadow, this.background, this.placeholder, this.textObject, this.cursor]);
