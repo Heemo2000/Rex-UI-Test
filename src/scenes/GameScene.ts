@@ -27,7 +27,7 @@ export default class GameScene extends Phaser.Scene
         let textInputBox = new TextInputBox(
             this, 
             80, 
-            150, 
+            50, 
             250, 
             50, 
             15, 
