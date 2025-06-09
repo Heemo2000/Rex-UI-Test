@@ -22,7 +22,7 @@ export default class GameScene extends Phaser.Scene
     {
 
 		let clickBtn = new ClickableButton(this, 80, 100, "button-orange", "CLick me", 0.2, this.showButtonIsClicked.bind(this));
-        
+        clickBtn;
         // Create a TextInputBox with a custom outline color
         let textInputBox = new TextInputBox(
             this, 
