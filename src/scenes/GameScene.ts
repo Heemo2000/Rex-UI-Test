@@ -52,9 +52,9 @@ export default class GameScene extends Phaser.Scene
     
         this.add.existing(label);
     
-        label.setInteractiveLabel(() => {
-          label.setText('Clicked!');
-        });
+        // label.setInteractiveLabel(() => {
+        //   label.setText('Clicked!');
+        // });
     }
 
 	private showButtonIsClicked() : void
