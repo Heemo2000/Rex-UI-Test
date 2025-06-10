@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import ClickableButton from "../helpers/ClickableButton";
 import TextInputBox from "../helpers/TextInputBox";
-
+import Label from "../helpers/Label";
 
 
 export default class GameScene extends Phaser.Scene
@@ -36,6 +36,25 @@ export default class GameScene extends Phaser.Scene
             "Enter-text-here", 
         );
         textInputBox.setName('textInputBox'); // Add this line to give it a name
+
+        const label = new Label(this, 150, 300, 'I just love trance music. It heals your soul.', {
+          backgroundColor: 0x223344,
+          textColor: '#fff000',
+          fontSize: 20,
+          padding: 12,
+          cornerRadius: 5,
+          align: 'center',
+          fixedWidth: true,
+          width: 250,
+          autoFontResize: true,
+          backgroundAlpha: 0.5,
+        });
+    
+        this.add.existing(label);
+    
+        label.setInteractiveLabel(() => {
+          label.setText('Clicked!');
+        });
     }
 
 	private showButtonIsClicked() : void
